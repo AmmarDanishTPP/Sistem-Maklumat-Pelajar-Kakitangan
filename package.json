@@ -1,0 +1,13 @@
+{
+  "name": "sistem-profil-pelajar",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vitest": "^0.34.0",
+    "@vitest/coverage-v8": "^0.34.0"
+  }
+}

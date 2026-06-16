@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carian | SMPK System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-search {
+            padding: 0 30px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .local-user {
+            border-left: 5px solid #27ae60;
+        }
+
+        /* Warna hijau untuk data dari pendaftaran */
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">SMPK System</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Utama</a></li>
+            <li><a href="daftar.html">Daftar</a></li>
+            <li><a href="login.html">Log Masuk</a></li>
+            <li><a href="carian.html">Carian</a></li>
+        </ul>
+    </nav>
+    <main class="container">
+        <h2 style="text-align:center; margin-bottom: 1rem;">Carian Maklumat Pelajar</h2>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Cari nama atau e-mel...">
+            <button id="searchBtn" class="btn-search">Cari</button>
+        </div>
+        <div id="loading" style="display:none; text-align:center;">⌛ Memuatkan data...</div>
+        <div id="results" class="grid"></div>
+    </main>
+
+    <script>
+        const btn = document.getElementById('searchBtn');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+
+        async function fetchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            results.innerHTML = "";
+            loading.style.display = "block";
+
+            try {
+                // 1. Ambil data dari API Luar
+                const res = await fetch('https://jsonplaceholder.typicode.com/users');
+                const apiData = await res.json();
+
+                // 2. Ambil data dari LocalStorage
+                const localData = JSON.parse(localStorage.getItem('pelajarTempatan')) || [];
+
+                // 3. Gabungkan Data (Local + API)
+                const allData = [...localData, ...apiData];
+
+                // 4. Tapis berdasarkan carian
+                const filtered = allData.filter(u =>
+                    u.name.toLowerCase().includes(query) ||
+                    u.email.toLowerCase().includes(query)
+                );
+
+                loading.style.display = "none";
+
+                if (filtered.length === 0) {
+                    results.innerHTML = "<p>Tiada data ditemui.</p>";
+                    return;
+                }
+
+                // 5. Paparkan Kad
+                filtered.forEach(user => {
+                    const card = document.createElement('div');
+                    // Jika dari local pendaftaran, guna class hijau
+                    const isLocal = user.company.name.includes("Manual");
+                    card.className = `user-card ${isLocal ? 'local-user' : ''}`;
+
+                    card.innerHTML = `
+                        <h3>${user.name}</h3>
+                        <p>📧 ${user.email}</p>
+                        <p>🏢 ${user.company.name}</p>
+                        ${isLocal ? '<span style="font-size:0.8rem; color:#27ae60;">✔ Data Tempatan</span>' : ''}
+                    `;
+                    results.appendChild(card);
+                });
+            } catch (err) {
+                loading.innerText = "Gagal memproses data.";
+                console.error(err);
+            }
+        }
+
+        btn.addEventListener('click', fetchAndFilter);
+        window.onload = fetchAndFilter;
+    </script>
+</body>
+
+</html>
